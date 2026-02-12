@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { getAllEntries, getSettings } from '../lib/db'
-import type { JournalEntry, AppSettings } from '../lib/types'
+import { getAllEntries } from '../lib/db'
+import type { JournalEntry } from '../lib/types'
 
 export default function Record() {
   const { masterKey } = useAuth()
   const [entries, setEntries] = useState<JournalEntry[]>([])
-  const [, setSettings] = useState<AppSettings | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -14,12 +13,8 @@ export default function Record() {
   useEffect(() => {
     async function load() {
       if (!masterKey) return
-      const [allEntries, s] = await Promise.all([
-        getAllEntries(masterKey),
-        getSettings(),
-      ])
+      const allEntries = await getAllEntries(masterKey)
       setEntries(allEntries)
-      setSettings(s ?? null)
       setIsLoading(false)
     }
     load()

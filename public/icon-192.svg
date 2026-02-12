@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#0f0a1a"/>
+  <circle cx="96" cy="88" r="40" fill="none" stroke="#7c3aed" stroke-width="3" opacity="0.6"/>
+  <circle cx="96" cy="88" r="24" fill="none" stroke="#a78bfa" stroke-width="2" opacity="0.8"/>
+  <circle cx="96" cy="88" r="8" fill="#d4c2eb"/>
+  <path d="M60 130 Q96 150 132 130" fill="none" stroke="#7c3aed" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+  <text x="96" y="170" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="300" fill="#b399d9" letter-spacing="2">LIMINALIS</text>
+</svg>

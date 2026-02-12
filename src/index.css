@@ -59,6 +59,64 @@ body {
   transition: opacity 300ms ease-out, transform 300ms ease-out;
 }
 
+/* Fade-in animation for cards and sections */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 400ms ease-out both;
+}
+
+/* Subtle pulse for active state indicators */
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.animate-gentle-pulse {
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+/* Range input custom styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, #4c1d95, #7c3aed, #d97706);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #a78bfa;
+  border: 2px solid #0f0a1a;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #a78bfa;
+  border: 2px solid #0f0a1a;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.3);
+}
+
 /* Custom scrollbar for desktop */
 @media (min-width: 768px) {
   ::-webkit-scrollbar {

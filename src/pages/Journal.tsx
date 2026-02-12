@@ -5,9 +5,11 @@ import {
   getProfile,
   getSettings,
   saveEntry,
+  getAllEntries,
   getEntryCount,
   generateId,
 } from '../lib/db'
+import { analyzePatterns, generateDailyAction } from '../lib/patterns'
 import SpeechInput from '../components/SpeechInput'
 import { getDailyPrompt, getRandomPrompt, GUIDED_STEPS } from '../data/prompts'
 import type { AppSettings, UserProfile, JournalEntry, MoodLevel, ShadowBalance } from '../lib/types'
@@ -36,6 +38,10 @@ export default function Journal() {
   const [shadowBalance, setShadowBalance] = useState<ShadowBalance>(0)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Post-submission state (The Mirror + The Step)
+  const [dailyAction, setDailyAction] = useState('')
+  const [mirrorInsight, setMirrorInsight] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -97,6 +103,9 @@ export default function Journal() {
     if (!masterKey || isSubmitting) return
     setIsSubmitting(true)
 
+    // Fetch existing entries for pattern analysis
+    const existingEntries = await getAllEntries(masterKey)
+
     const entry: JournalEntry = {
       id: generateId(),
       timestamp: Date.now(),
@@ -110,17 +119,34 @@ export default function Journal() {
         : { guidedResponses }),
     }
 
+    // Analyze patterns including the new entry
+    const allEntries = [entry, ...existingEntries]
+    const patterns = analyzePatterns(allEntries)
+    const action = generateDailyAction(entry, patterns, shadowName)
+
+    // Attach daily action to the entry
+    entry.dailyAction = action
+
+    // Find if this entry triggered/contributed to a pattern
+    if (patterns.length > 0) {
+      const relevantPattern = patterns.find((p) => p.entryIds.includes(entry.id))
+      if (relevantPattern) {
+        setMirrorInsight(relevantPattern.description)
+      }
+    }
+
+    setDailyAction(action)
     await saveEntry(entry, masterKey)
 
     setPhase('submitted')
     setEntryCount((c) => c + 1)
   }
 
-  // ── Submitted confirmation ──
+  // ── Submitted confirmation with The Mirror + The Step ──
   if (phase === 'submitted') {
     return (
-      <div className="mx-auto max-w-lg text-center">
-        <div className="mb-6 mt-8">
+      <div className="mx-auto max-w-lg">
+        <div className="mb-6 mt-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-900/30">
             <span className="text-2xl">&#x2728;</span>
           </div>
@@ -137,26 +163,59 @@ export default function Journal() {
           )}
         </div>
 
-        <div className="space-y-3">
-          <button
-            onClick={() => {
-              setPhase('write')
-              setFreeformText('')
-              setGuidedResponses({})
-              setGuidedStep(0)
-              setPrompt(getDailyPrompt())
-              setUsedSpeech(false)
-            }}
-            className="w-full rounded-lg bg-gradient-to-r from-violet-700 to-purple-600 px-4 py-3 text-sm font-medium text-white transition-all hover:from-violet-600 hover:to-purple-500"
-          >
-            Write Another Entry
-          </button>
-          <button
-            onClick={() => navigate('/record')}
-            className="w-full rounded-lg border border-purple-700/30 px-4 py-3 text-sm text-purple-300/70 transition-colors hover:border-purple-600/50"
-          >
-            View Your Record
-          </button>
+        <div className="space-y-4">
+          {/* The Mirror -- pattern insight */}
+          {mirrorInsight && (
+            <section className="animate-fade-in rounded-xl border border-purple-800/30 bg-purple-950/20 p-5">
+              <h3 className="text-xs font-medium uppercase tracking-wider text-purple-300/70">
+                The Mirror
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-purple-200/80">
+                {mirrorInsight}
+              </p>
+            </section>
+          )}
+
+          {/* The Step -- daily action */}
+          <section className="animate-fade-in rounded-xl border border-amber-800/20 bg-amber-950/10 p-5" style={{ animationDelay: mirrorInsight ? '200ms' : '0ms' }}>
+            <h3 className="text-xs font-medium uppercase tracking-wider text-amber-300/70">
+              Your Step for Tomorrow
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-amber-200/70">
+              {dailyAction}
+            </p>
+          </section>
+
+          {/* Actions */}
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={() => {
+                setPhase('write')
+                setFreeformText('')
+                setGuidedResponses({})
+                setGuidedStep(0)
+                setPrompt(getDailyPrompt())
+                setUsedSpeech(false)
+                setDailyAction('')
+                setMirrorInsight('')
+              }}
+              className="w-full rounded-lg bg-gradient-to-r from-violet-700 to-purple-600 px-4 py-3 text-sm font-medium text-white transition-all hover:from-violet-600 hover:to-purple-500"
+            >
+              Write Another Entry
+            </button>
+            <button
+              onClick={() => navigate('/record')}
+              className="w-full rounded-lg border border-purple-700/30 px-4 py-3 text-sm text-purple-300/70 transition-colors hover:border-purple-600/50"
+            >
+              View Your Record
+            </button>
+            <button
+              onClick={() => navigate('/balance')}
+              className="w-full py-2 text-xs text-purple-500/40 transition-colors hover:text-purple-400/60"
+            >
+              See Your Balance
+            </button>
+          </div>
         </div>
       </div>
     )
